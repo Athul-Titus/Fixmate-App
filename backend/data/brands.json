@@ -1,0 +1,20 @@
+{
+  "Prestige": {
+    "Pressure Cooker": {
+      "common_issues": {
+        "Steam leakage": "Check gasket alignment, replace worn rubber ring.",
+        "Handle loose": "Tighten screws carefully using a screwdriver."
+      },
+      "brand_page": "https://www.prestigexclusive.in/"
+    }
+  },
+  "Philips": {
+    "Mixer Grinder": {
+      "common_issues": {
+        "Motor not starting": "Check plug connection, reset overload protector.",
+        "Unusual noise": "Remove jar and check for loose blades."
+      },
+      "brand_page": "https://www.philips.co.in/"
+    }
+  }
+}
