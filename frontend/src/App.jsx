@@ -10,7 +10,7 @@ import DeviceSelector from "./components/DeviceSelector";
 import SolutionDisplay from "./components/SolutionDisplay";
 import ServiceCards from "./components/ServiceCards";
 
-const API_BASE = "http://127.0.0.1:5000/api";
+const API_BASE = "/api";
 
 function App() {
   // App data
