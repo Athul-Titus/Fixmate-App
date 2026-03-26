@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/service_card.dart';
+import '../services/api_service.dart';
 
 class HomeScreen extends StatelessWidget {
   final VoidCallback onGetStarted;

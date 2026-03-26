@@ -1,6 +1,7 @@
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 class ApiService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -140,69 +141,68 @@ class ApiService {
 
   // Debug function to seed initial data so the UI works
   static Future<void> seedDatabase() async {
-    final Map<String, dynamic> sampleData = {
-      'Samsung': {
-        'Refrigerator': {
-          'not_cooling': {
-            'title': 'Fridge Not Cooling',
-            'description': 'The refrigerator is running but not cooling properly.',
-            'fix': 'Check and clean the condenser coils. Ensure the door seals are tight and not leaking air.',
-            'quickTips': ['Clean coils every 6 months', 'Check for blocked air vents inside'],
-          }
-        },
-        'Washing Machine': {
-          'not_spinning': {
-            'title': 'Washer Not Spinning',
-            'description': 'The drum does not spin during the spin cycle.',
-            'fix': 'Inspect the drive belt to see if it has snapped or is loose. Check the door latch switch for continuity.',
-            'quickTips': ['Don\'t overload the machine', 'Ensure it is level on the floor'],
-          }
+    try {
+      final String jsonString = await rootBundle.loadString('assets/data/fixmate_data.json');
+      final List<dynamic> data = jsonDecode(jsonString);
+
+      final Set<String> createdBrands = {};
+      final Set<String> createdAppliances = {};
+
+      var batch = _firestore.batch();
+      int count = 0;
+
+      for (var item in data) {
+        final brand = item['brand'] as String;
+        final appliance = item['appliance'] as String;
+        final issueTitle = item['issue_title'] as String;
+        final solution = item['solution'] as String;
+
+        // Generate a safe document ID
+        final issueId = issueTitle
+            .toLowerCase()
+            .replaceAll(RegExp(r'[^a-z0-9]'), '_')
+            .replaceAll(RegExp(r'_+'), '_');
+
+        if (!createdBrands.contains(brand)) {
+          batch.set(_firestore.collection('brands').doc(brand), <String, dynamic>{});
+          createdBrands.add(brand);
+          count++;
         }
-      },
-      'LG': {
-        'Air Conditioner': {
-          'not_cooling': {
-            'title': 'AC Not Blowing Cold Air',
-            'description': 'The AC is running but blowing room temperature air.',
-            'fix': 'Clean the air filter. If the filter is clean, the compressor might be malfunctioning or freon levels let low.',
-            'quickTips': ['Clean filters monthly', 'Check the outdoor unit for debris buildup'],
+
+        final applianceKey = '${brand}_$appliance';
+        if (!createdAppliances.contains(applianceKey)) {
+          batch.set(
+            _firestore.collection('brands').doc(brand).collection('appliances').doc(appliance),
+            <String, dynamic>{}
+          );
+          createdAppliances.add(applianceKey);
+          count++;
+        }
+
+        // Add issue
+        batch.set(
+          _firestore.collection('brands').doc(brand).collection('appliances').doc(appliance).collection('issues').doc(issueId),
+          {
+            'title': issueTitle,
+            'fix': solution,
+            'quickTips': ['See detailed solution below'],
           }
+        );
+        count++;
+
+        // Firestore batch limit is 500
+        if (count >= 400) {
+          await batch.commit();
+          batch = _firestore.batch();
+          count = 0;
         }
       }
-    };
 
-    try {
-      for (var brandEntry in sampleData.entries) {
-        final brandName = brandEntry.key;
-        await _firestore.collection('brands').doc(brandName).set({});
-
-        final appliances = brandEntry.value as Map<String, dynamic>;
-        for (var applianceEntry in appliances.entries) {
-          final applianceName = applianceEntry.key;
-          await _firestore
-              .collection('brands')
-              .doc(brandName)
-              .collection('appliances')
-              .doc(applianceName)
-              .set({});
-
-          final issues = applianceEntry.value as Map<String, dynamic>;
-          for (var issueEntry in issues.entries) {
-            final issueId = issueEntry.key;
-            final issueData = issueEntry.value as Map<String, dynamic>;
-            await _firestore
-                .collection('brands')
-                .doc(brandName)
-                .collection('appliances')
-                .doc(applianceName)
-                .collection('issues')
-                .doc(issueId)
-                .set(issueData);
-          }
-        }
+      if (count > 0) {
+        await batch.commit();
       }
     } catch (e) {
-      throw Exception('Failed to seed database: $e');
+      throw Exception('Failed to seed massive database: $e');
     }
   }
 }
