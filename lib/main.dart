@@ -7,8 +7,12 @@ import 'screens/diagnose_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/services_screen.dart';
 import 'screens/account_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  
   runApp(
     MultiProvider(
       providers: [

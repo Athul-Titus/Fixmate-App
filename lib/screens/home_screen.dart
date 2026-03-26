@@ -59,11 +59,35 @@ class HomeScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: onGetStarted,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.surface,
-                        foregroundColor: AppTheme.primary,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: AppTheme.surface,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 16,
+                        ),
                       ),
-                      child: const Text('Get Started', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: const Text('Book Now'),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton.icon(
+                      onPressed: () async {
+                        try {
+                          await ApiService.seedDatabase();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Firebase Database Seeded Automatically!')),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.cloud_upload, color: AppTheme.surface),
+                      label: const Text('Seed Test Data to Firebase', style: TextStyle(color: AppTheme.surface)),
                     ),
                   ],
                 ),
