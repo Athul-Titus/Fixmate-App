@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'providers/auth_provider.dart';
 import 'theme/app_theme.dart';
 import 'widgets/animated_mesh_bg.dart';
@@ -10,9 +10,16 @@ import 'screens/search_screen.dart';
 import 'screens/services_screen.dart';
 import 'screens/account_screen.dart';
 
+// Firebase is only supported on Android / iOS.
+// On Windows we skip initialisation entirely — the auth provider
+// will simply fall back to an "always unauthenticated" state
+// which is fine for UI preview purposes.
+import 'firebase_init_stub.dart'
+    if (dart.library.io) 'firebase_init_mobile.dart' as firebase_init;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await firebase_init.init();
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
@@ -153,10 +160,10 @@ class _BottomNav extends StatelessWidget {
 /// Custom slide-up + fade page route.
 Route<T> slideUpRoute<T>(Widget page) {
   return PageRouteBuilder<T>(
-    pageBuilder: (_, animation, __) => page,
+    pageBuilder: (context, animation, secondaryAnimation) => page,
     transitionDuration: const Duration(milliseconds: 400),
     reverseTransitionDuration: const Duration(milliseconds: 300),
-    transitionsBuilder: (_, animation, __, child) {
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
       final slideAnim = Tween(begin: const Offset(0, 0.12), end: Offset.zero)
           .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
       final fadeAnim = CurvedAnimation(parent: animation, curve: Curves.easeIn);

@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../services/api_service.dart';
+
+// Conditionally import Firebase Auth only on mobile platforms
+import 'auth_provider_stub.dart'
+    if (dart.library.io) 'auth_provider_mobile.dart' as platform_auth;
 
 class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? _user;
@@ -11,37 +14,40 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   AuthProvider() {
-    _initAuthListener();
+    _init();
   }
 
-  void _initAuthListener() {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user != null) {
-        _user = {
-          'id': user.uid,
-          'name': user.displayName ?? 'User',
-          'email': user.email,
-        };
-      } else {
+  void _init() {
+    platform_auth.listenAuthState(
+      onUser: (u) {
+        _user = u;
+        _isLoading = false;
+        notifyListeners();
+      },
+      onSignedOut: () {
         _user = null;
-      }
-      _isLoading = false;
-      notifyListeners();
-    });
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
   }
 
   Future<void> login(String email, String password) async {
-    await ApiService.login(email, password);
-    // authStateChanges will auto-trigger and update _user
+    await platform_auth.login(email, password);
   }
 
   Future<void> signup(String name, String email, String password) async {
-    await ApiService.signup(name, email, password);
-    // authStateChanges will auto-trigger and update _user
+    await platform_auth.signup(name, email, password);
   }
 
   Future<void> logout() async {
-    await FirebaseAuth.instance.signOut();
-    // authStateChanges will auto-trigger and clear _user
+    await platform_auth.logout();
+  }
+
+  // Desktop-only: set user manually for UI preview
+  void setDesktopUser() {
+    _user = {'id': 'preview', 'name': 'Preview User', 'email': 'preview@fixmate.app'};
+    _isLoading = false;
+    notifyListeners();
   }
 }
