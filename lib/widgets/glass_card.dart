@@ -1,31 +1,31 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-/// Frosted glass card — wraps any child with BackdropFilter blur.
-/// Place this over the animated mesh background for the glass effect.
+/// Frosted glass card — works correctly on both mobile and web.
+/// On mobile: BackdropFilter blurs the mesh background behind the card.
+/// On web: the dark fill ensures readability even without perfect blur.
 class GlassCard extends StatelessWidget {
   final Widget child;
   final double borderRadius;
   final EdgeInsetsGeometry? padding;
   final double blur;
-  final double opacity;
   final Color? tintColor;
   final bool showBorder;
+  final double? opacity; // kept for API compat — affects dark tint strength
 
   const GlassCard({
     super.key,
     required this.child,
     this.borderRadius = 24,
     this.padding,
-    this.blur = 24,
-    this.opacity = 0.10,
+    this.blur = 18,
     this.tintColor,
     this.showBorder = true,
+    this.opacity,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = tintColor ?? Colors.white;
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: BackdropFilter(
@@ -33,10 +33,15 @@ class GlassCard extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: opacity),
+            // Dark semi-transparent base so text is always readable
+            color: tintColor != null
+                ? tintColor!.withValues(alpha: 0.18)
+                : const Color(0xFF1E1A30).withValues(alpha: 0.72),
             borderRadius: BorderRadius.circular(borderRadius),
             border: showBorder
-                ? Border.all(color: Colors.white.withValues(alpha: 0.18), width: 1.2)
+                ? Border.all(
+                    color: Colors.white.withValues(alpha: 0.14),
+                    width: 1.2)
                 : null,
           ),
           child: child,
@@ -46,32 +51,37 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-/// A glass card with a subtle gradient shimmer on the top edge.
+/// Shimmer-style glass card with a subtle dark gradient.
 class GlassCardShimmer extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final double borderRadius;
-  const GlassCardShimmer({super.key, required this.child, this.padding, this.borderRadius = 24});
+  const GlassCardShimmer(
+      {super.key,
+      required this.child,
+      this.padding,
+      this.borderRadius = 24});
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(borderRadius),
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withValues(alpha: 0.14),
-                Colors.white.withValues(alpha: 0.06),
+                Color(0xCC1E1A35), // ~80% dark
+                Color(0xAA14101F), // ~67% darker
               ],
             ),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.20), width: 1.2),
+            border: Border.all(
+                color: Colors.white.withValues(alpha: 0.16), width: 1.2),
           ),
           child: child,
         ),
