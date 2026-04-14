@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/glass_card.dart';
+import '../widgets/press_3d_button.dart';
 import 'login_screen.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -12,97 +14,238 @@ class AccountScreen extends StatelessWidget {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
         if (!auth.isAuthenticated) {
-          return Center(
+          return _NotLoggedIn(onLogin: () => Navigator.push(context, MaterialPageRoute(
+            builder: (_) => LoginScreen(onLoginSuccess: () => Navigator.pop(context)))));
+        }
+        return _LoggedIn(auth: auth);
+      },
+    );
+  }
+}
+
+class _NotLoggedIn extends StatelessWidget {
+  final VoidCallback onLogin;
+  const _NotLoggedIn({required this.onLogin});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: GlassCardShimmer(
+            padding: const EdgeInsets.all(28),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.account_circle, size: 80, color: AppTheme.border),
-                const SizedBox(height: 16),
-                const Text(
-                  'Sign in to sync your bookings across devices',
-                  style: TextStyle(color: AppTheme.textSecondary),
+                Container(
+                  width: 72, height: 72,
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.primaryGrad,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [BoxShadow(
+                      color: AppTheme.primary.withValues(alpha: 0.45),
+                      blurRadius: 24, offset: const Offset(0, 8),
+                    )],
+                  ),
+                  child: const Icon(Icons.lock_person_rounded, size: 38, color: Colors.white),
                 ),
+                const SizedBox(height: 18),
+                const Text('Sign in to FixMate', style: TextStyle(
+                  fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.text)),
+                const SizedBox(height: 6),
+                const Text('Track bookings and sync across devices',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4)),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => LoginScreen(
-                          onLoginSuccess: () => Navigator.pop(context),
-                        ),
-                      ),
-                    );
-                  },
-                  child: const Text('Login / Sign Up'),
-                ),
+                GlowButton(label: 'Login / Sign Up', icon: Icons.login_rounded, onPressed: onLogin),
               ],
             ),
-          );
-        }
-
-        final user = auth.user!;
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Account'),
-            centerTitle: true,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: () async {
-                  await auth.logout();
-                },
-              ),
-            ],
           ),
-          body: ListView(
-            padding: const EdgeInsets.all(16.0),
+        ),
+      ),
+    );
+  }
+}
+
+class _LoggedIn extends StatelessWidget {
+  final AuthProvider auth;
+  const _LoggedIn({required this.auth});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = auth.user!;
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CircleAvatar(
-                radius: 40,
-                backgroundColor: AppTheme.primary,
-                child: Icon(Icons.person, size: 40, color: AppTheme.surface),
+              const SizedBox(height: 12),
+
+              // Header
+              const Text('Account', style: TextStyle(
+                fontSize: 32, fontWeight: FontWeight.w900,
+                color: AppTheme.text, letterSpacing: -0.5,
+              )),
+              const SizedBox(height: 20),
+
+              // Profile card
+              Tilt3DCard(
+                child: GlassCardShimmer(
+                  padding: const EdgeInsets.all(22),
+                  child: Row(
+                    children: [
+                      // Avatar with glow ring
+                      Container(
+                        width: 64, height: 64,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: AppTheme.primaryGrad,
+                          boxShadow: [BoxShadow(
+                            color: AppTheme.primary.withValues(alpha: 0.5),
+                            blurRadius: 20, spreadRadius: 2,
+                          )],
+                        ),
+                        child: Center(child: Text(
+                          (user['name'] as String? ?? 'U').isNotEmpty
+                              ? (user['name'] as String).substring(0, 1).toUpperCase()
+                              : 'U',
+                          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
+                        )),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(user['name'] ?? 'User', style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text)),
+                          const SizedBox(height: 3),
+                          Text(user['email'] ?? '', style: const TextStyle(
+                            fontSize: 13, color: AppTheme.textSecondary)),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppTheme.success.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppTheme.success.withValues(alpha: 0.3)),
+                            ),
+                            child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                              Icon(Icons.verified_rounded, size: 12, color: AppTheme.success),
+                              SizedBox(width: 4),
+                              Text('Verified', style: TextStyle(color: AppTheme.success, fontSize: 11, fontWeight: FontWeight.w600)),
+                            ]),
+                          ),
+                        ],
+                      )),
+                      Press3D(
+                        onTap: () async { await auth.logout(); },
+                        child: GlassCard(
+                          padding: const EdgeInsets.all(10),
+                          borderRadius: 12,
+                          tintColor: AppTheme.error,
+                          opacity: 0.1,
+                          child: const Icon(Icons.logout_rounded, color: AppTheme.error, size: 20),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                user['name'] ?? 'User',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+
+              const SizedBox(height: 24),
+              const Text('Settings', style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text)),
+              const SizedBox(height: 14),
+
+              _AccountMenuItem(
+                icon: Icons.history_rounded,
+                label: 'My Bookings',
+                subtitle: 'View past and upcoming bookings',
+                gradient: AppTheme.primaryGrad,
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Coming soon!'), backgroundColor: Color(0xFF1E1E2E))),
               ),
-              Text(
-                user['email'] ?? '',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+              const SizedBox(height: 10),
+              _AccountMenuItem(
+                icon: Icons.settings_rounded,
+                label: 'App Settings',
+                subtitle: 'Preferences and notifications',
+                gradient: AppTheme.cyanGrad,
+                onTap: () {},
+              ),
+              const SizedBox(height: 10),
+              _AccountMenuItem(
+                icon: Icons.help_outline_rounded,
+                label: 'Help & Support',
+                subtitle: 'FAQs and contact us',
+                gradient: AppTheme.accentGrad,
+                onTap: () {},
+              ),
+              const SizedBox(height: 10),
+              _AccountMenuItem(
+                icon: Icons.laptop_mac_rounded,
+                label: 'Web Version',
+                subtitle: 'fixmate-app-ykux.onrender.com',
+                gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF34D399)]),
+                onTap: () {},
               ),
               const SizedBox(height: 32),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.history),
-                title: const Text('My Bookings'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  // TODO: Show booking history
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Coming soon!')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.settings),
-                title: const Text('Settings'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: const Icon(Icons.help_outline),
-                title: const Text('Help & Support'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {},
-              ),
             ],
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+}
+
+class _AccountMenuItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final LinearGradient gradient;
+  final VoidCallback onTap;
+  const _AccountMenuItem({required this.icon, required this.label, required this.subtitle,
+    required this.gradient, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Press3D(
+      onTap: onTap,
+      child: GlassCard(
+        padding: const EdgeInsets.all(16),
+        borderRadius: 18,
+        child: Row(
+          children: [
+            Container(
+              width: 46, height: 46,
+              decoration: BoxDecoration(
+                gradient: gradient,
+                borderRadius: BorderRadius.circular(13),
+                boxShadow: [BoxShadow(
+                  color: gradient.colors.first.withValues(alpha: 0.4),
+                  blurRadius: 10, offset: const Offset(0, 3),
+                )],
+              ),
+              child: Icon(icon, color: Colors.white, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: AppTheme.text)),
+                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+              ],
+            )),
+            const Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary, size: 20),
+          ],
+        ),
+      ),
     );
   }
 }
