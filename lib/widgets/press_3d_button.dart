@@ -62,8 +62,8 @@ class _Press3DState extends State<Press3D> with SingleTickerProviderStateMixin {
         builder: (_, child) => Transform(
           alignment: Alignment.center,
           transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.001) // perspective
-            ..scale(_scale.value),
+            ..setEntry(3, 2, 0.001)
+            ..scale(_scale.value, _scale.value, 1.0),
           child: child,
         ),
         child: widget.child,
@@ -128,7 +128,7 @@ class _Tilt3DCardState extends State<Tilt3DCard> with SingleTickerProviderStateM
             ..setEntry(3, 2, 0.001)
             ..rotateX(_tiltX)
             ..rotateY(_tiltY)
-            ..scale(_scale),
+            ..scale(_scale, _scale, 1.0),
           child: widget.child,
         ),
       ),

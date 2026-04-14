@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 
 /// Frosted glass card — wraps any child with BackdropFilter blur.
 /// Place this over the animated mesh background for the glass effect.

@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// Animated mesh gradient background (Apple WWDC-style glowing orbs).
