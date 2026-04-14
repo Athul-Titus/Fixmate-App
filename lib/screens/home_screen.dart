@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/press_3d_button.dart';
-import '../widgets/animated_mesh_bg.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onGetStarted;

@@ -45,44 +45,6 @@ class MainTabNavigator extends StatefulWidget {
 class _MainTabNavigatorState extends State<MainTabNavigator> {
   int _currentIndex = 0;
 
-  static const _navItems = [
-    BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-    BottomNavigationBarItem(icon: Icon(Icons.build_rounded), label: 'Diagnose'),
-    BottomNavigationBarItem(icon: Icon(Icons.manage_search_rounded), label: 'Search'),
-    BottomNavigationBarItem(icon: Icon(Icons.home_repair_service_rounded), label: 'Services'),
-    BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Account'),
-  ];
-
-  Widget _buildNavItem({required IconData icon, required String label, required bool selected}) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: selected
-          ? BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            )
-          : null,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon,
-            color: selected ? AppTheme.primary : AppTheme.textSecondary,
-            size: selected ? 25 : 22,
-          ),
-          const SizedBox(height: 3),
-          Text(label,
-            style: TextStyle(
-              color: selected ? AppTheme.primary : AppTheme.textSecondary,
-              fontSize: 10,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.normal,
-            )),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final screens = [
