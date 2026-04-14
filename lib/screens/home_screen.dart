@@ -30,8 +30,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() { _heroCtrl.dispose(); super.dispose(); }
 
   @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
