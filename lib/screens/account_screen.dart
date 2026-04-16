@@ -167,11 +167,20 @@ class _LoggedIn extends StatelessWidget {
 
               _AccountMenuItem(
                 icon: Icons.history_rounded,
-                label: 'My Bookings',
-                subtitle: 'View past and upcoming bookings',
+                label: 'Diagnosis History',
+                subtitle: 'View your recent diagnoses',
                 gradient: AppTheme.primaryGrad,
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Coming soon!'), backgroundColor: Color(0xFF1E1E2E))),
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const HistoryScreen())),
+              ),
+              const SizedBox(height: 10),
+              _AccountMenuItem(
+                icon: Icons.bookmark_rounded,
+                label: 'Saved Solutions',
+                subtitle: 'Your bookmarked fixes',
+                gradient: AppTheme.accentGrad,
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const BookmarksScreen())),
               ),
               const SizedBox(height: 10),
               _AccountMenuItem(
@@ -186,7 +195,8 @@ class _LoggedIn extends StatelessWidget {
                 icon: Icons.help_outline_rounded,
                 label: 'Help & Support',
                 subtitle: 'FAQs and contact us',
-                gradient: AppTheme.accentGrad,
+                gradient: const LinearGradient(
+                    colors: [Color(0xFF10B981), Color(0xFF34D399)]),
                 onTap: () {},
               ),
               const SizedBox(height: 10),
@@ -194,7 +204,8 @@ class _LoggedIn extends StatelessWidget {
                 icon: Icons.laptop_mac_rounded,
                 label: 'Web Version',
                 subtitle: 'fixmate-app-ykux.onrender.com',
-                gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF34D399)]),
+                gradient: const LinearGradient(
+                    colors: [Color(0xFF5B8AF0), Color(0xFF7C6FF7)]),
                 onTap: () {},
               ),
               const SizedBox(height: 32),
