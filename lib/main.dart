@@ -1,20 +1,19 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/auth_provider.dart';
 import 'theme/app_theme.dart';
 import 'widgets/animated_mesh_bg.dart';
+import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/diagnose_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/services_screen.dart';
 import 'screens/account_screen.dart';
 
-// Firebase is only supported on Android / iOS.
-// On Windows we skip initialisation entirely — the auth provider
-// will simply fall back to an "always unauthenticated" state
-// which is fine for UI preview purposes.
 import 'firebase_init_stub.dart'
+    if (dart.library.html) 'firebase_init_stub.dart'
     if (dart.library.io) 'firebase_init_mobile.dart' as firebase_init;
 
 Future<void> main() async {
@@ -37,8 +36,52 @@ class FixMateApp extends StatelessWidget {
       title: 'FixMate',
       theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      home: const MainTabNavigator(),
+      home: const _AppRoot(),
     );
+  }
+}
+
+/// Checks if onboarding has been shown before and routes accordingly.
+class _AppRoot extends StatefulWidget {
+  const _AppRoot();
+
+  @override
+  State<_AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<_AppRoot> {
+  bool? _showOnboarding;
+
+  @override
+  void initState() {
+    super.initState();
+    _check();
+  }
+
+  Future<void> _check() async {
+    final prefs = await SharedPreferences.getInstance();
+    final done = prefs.getBool('onboarding_done') ?? false;
+    if (mounted) setState(() => _showOnboarding = !done);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_showOnboarding == null) {
+      // Splash — dark bg while checking prefs
+      return const Scaffold(
+          backgroundColor: Color(0xFF07060F),
+          body: Center(
+              child: CircularProgressIndicator(
+                  color: AppTheme.primary, strokeWidth: 2.5)));
+    }
+    if (_showOnboarding!) {
+      return AnimatedMeshBg(
+        child: OnboardingScreen(
+          onDone: () => setState(() => _showOnboarding = false),
+        ),
+      );
+    }
+    return const MainTabNavigator();
   }
 }
 
@@ -121,7 +164,8 @@ class _BottomNav extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeOut,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                   decoration: selected
                       ? BoxDecoration(
                           color: AppTheme.primary.withValues(alpha: 0.15),
@@ -135,16 +179,22 @@ class _BottomNav extends StatelessWidget {
                         scale: selected ? 1.1 : 1.0,
                         duration: const Duration(milliseconds: 200),
                         child: Icon(_icons[i],
-                          color: selected ? AppTheme.primary : AppTheme.textSecondary,
-                          size: 22),
+                            color: selected
+                                ? AppTheme.primary
+                                : AppTheme.textSecondary,
+                            size: 22),
                       ),
                       const SizedBox(height: 3),
                       Text(_labels[i],
-                        style: TextStyle(
-                          color: selected ? AppTheme.primary : AppTheme.textSecondary,
-                          fontSize: 10,
-                          fontWeight: selected ? FontWeight.w700 : FontWeight.normal,
-                        )),
+                          style: TextStyle(
+                            color: selected
+                                ? AppTheme.primary
+                                : AppTheme.textSecondary,
+                            fontSize: 10,
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.normal,
+                          )),
                     ],
                   ),
                 ),
@@ -165,8 +215,10 @@ Route<T> slideUpRoute<T>(Widget page) {
     reverseTransitionDuration: const Duration(milliseconds: 300),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       final slideAnim = Tween(begin: const Offset(0, 0.12), end: Offset.zero)
-          .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
-      final fadeAnim = CurvedAnimation(parent: animation, curve: Curves.easeIn);
+          .animate(CurvedAnimation(
+              parent: animation, curve: Curves.easeOutCubic));
+      final fadeAnim =
+          CurvedAnimation(parent: animation, curve: Curves.easeIn);
       return FadeTransition(
         opacity: fadeAnim,
         child: SlideTransition(position: slideAnim, child: child),

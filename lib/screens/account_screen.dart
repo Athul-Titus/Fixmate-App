@@ -5,6 +5,8 @@ import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/press_3d_button.dart';
 import 'login_screen.dart';
+import 'history_screen.dart';
+import 'bookmarks_screen.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
